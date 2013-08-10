@@ -1,0 +1,84 @@
+package com.example.jmdnscodeexample;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
+
+import javax.jmdns.JmDNS;
+import javax.jmdns.ServiceInfo;
+
+import org.apache.http.conn.util.InetAddressUtils;
+import android.os.Bundle;
+import android.util.Log;
+import android.app.Activity;
+
+public class MainActivity extends Activity {
+
+  @Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		
+	
+		new startservice().start();
+	}
+
+	
+	public static InetAddress getIPAddress()  {
+
+		try {
+			List<NetworkInterface> interfaces = Collections.list(NetworkInterface
+					.getNetworkInterfaces());
+			for (NetworkInterface intf : interfaces) {
+				List<InetAddress> addrs = Collections.list(intf.getInetAddresses());
+				for (InetAddress addr : addrs) {
+					if (!addr.isLoopbackAddress()) {
+
+						if (InetAddressUtils.isIPv4Address(addr.getHostAddress())) {
+							return addr;
+						}
+
+					}
+				}
+
+			}
+		} catch (SocketException e) {
+
+		}
+
+		return null;
+
+	}
+	
+ private class startservice extends Thread implements Runnable{
+	 
+	 @Override
+	public void run() {
+		super.run();
+		Log.e("start", "start");
+		
+	try {
+			
+			JmDNS test = JmDNS.create(getIPAddress(), "Test service");
+			Random r = new Random();
+			final HashMap<String, String> values = new HashMap<String, String>();
+			values.put("Device", "Android-" + r.nextInt(100000));
+			ServiceInfo info = ServiceInfo.create("_ftp._tcp.local.", "Test service", 0, 0, 0, values);
+			test.registerService(info);
+			
+		} catch (IOException e) {
+			
+			Log.e("fail", "fail");
+		}
+		
+	}
+	 
+ }
+	
+
+}
